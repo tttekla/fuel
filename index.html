@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="ka">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#f2b705">
+<title>საწვავის ჟურნალი</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<style>
+:root{--bg:#eef0ee;--card:#fff;--fg:#17201d;--mut:#5c6964;--line:#cfd6d2;--acc:#f2b705;--on:#17201d;--bad:#b3261e;--warn:#fff3cd}
+@media (prefers-color-scheme:dark){:root{--bg:#121715;--card:#1b2320;--fg:#e8eeeb;--mut:#9aaaa3;--line:#33403b;--bad:#ff8a80;--warn:#3d330f;color-scheme:dark}}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.45 system-ui,sans-serif}
+[hidden]{display:none!important}
+main{max-width:520px;margin:0 auto;padding:14px 16px 40px;display:grid;gap:12px;grid-template-columns:minmax(0,1fr)}
+h1{font-size:18px;margin:0}h2{font-size:15px;margin:0}small,.mut{color:var(--mut);font-size:13px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px;display:grid;gap:10px;min-width:0}
+.stack{display:grid;gap:12px;grid-template-columns:minmax(0,1fr)}
+.bal{background:var(--acc);color:var(--on);border-radius:10px;padding:12px 14px}.bal b{font-size:38px;display:block;line-height:1.15}.bal small{color:var(--on)}
+nav{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;gap:4px}
+button,input,select{font:inherit;color:var(--fg);border:1px solid var(--line);border-radius:8px;background:var(--card);padding:11px;min-width:0;max-width:100%;box-sizing:border-box}
+input,select{width:100%}button{cursor:pointer;font-weight:600}button:disabled{opacity:.5}
+nav button[aria-selected=true]{background:var(--fg);color:var(--bg)}
+.go{background:var(--acc);color:var(--on);border-color:var(--acc);padding:15px;font-weight:800}
+label{display:grid;gap:4px;font-size:13px;color:var(--mut)}#liters,#dl{font-size:30px;font-weight:800}
+.two{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px}
+.list{max-height:260px;overflow:auto;display:grid;gap:4px}
+.item{text-align:left;display:grid;font-weight:400}.picked{border:2px solid var(--acc)}
+.warn{background:var(--warn);border-radius:8px;padding:10px;font-size:14px}.bad{color:var(--bad)}
+.e{border-top:1px solid var(--line);padding:8px 0;display:grid;gap:4px}.e.void{opacity:.55;text-decoration:line-through}
+.row{display:flex;justify-content:space-between;gap:8px;align-items:center}.row strong+strong{white-space:nowrap}
+details summary{cursor:pointer;font-weight:600}details>div{display:grid;gap:8px;padding-top:8px}
+#msg{position:sticky;top:0;z-index:5;background:var(--fg);color:var(--bg);border-radius:8px;padding:10px}
+</style>
+</head>
+<body>
+<main>
+<h1>საწვავის ჟურნალი</h1>
+<div id="msg" role="status" hidden></div>
+<form id="login" class="card">
+ <label>სახელი<input id="name" autocomplete="username"></label>
+ <label>PIN კოდი<input id="pin" type="password" inputmode="numeric" autocomplete="off"></label>
+ <button class="go" id="enter">შესვლა</button>
+ <small>პირველი შესვლისთვის ინტერნეტია საჭირო.</small>
+</form>
+<div id="app" class="stack" hidden>
+ <div class="row"><strong id="whoami"></strong><button id="leave">გასვლა</button></div>
+ <div id="sync" class="warn" role="status"></div><button id="send">ახლავე გაგზავნა / განახლება</button>
+ <div id="errors" class="stack"></div>
+ <label id="truckL">დიზელმზიდი<select id="truck"></select></label>
+ <label>დღე<input type="date" id="date"></label>
+ <div class="bal"><small id="baltitle">ნაშთი ავზში</small><b id="end"></b><small id="parts"></small></div>
+ <nav id="nav"></nav>
+ <section id="p-fill" class="card" hidden>
+  <label>ტექნიკა (ჩაწერეთ ნომრის ნაწილი)<input id="q" placeholder="მაგ. 913" autocomplete="off"></label>
+  <div id="eq" class="list"></div>
+  <details id="addbox"><summary>+ ახალი ტექნიკის დამატება</summary><div>
+   <label>სახელმწიფო ნომერი<input id="np"></label><label>მოდელი<input id="nm"></label><label>ტიპი<input id="nt"></label>
+   <button id="addEq">დამატება და არჩევა</button></div></details>
+  <label>ჩასხმის დრო (საათი:წუთი)<input type="time" id="time"></label>
+  <label>ლიტრი<input id="liters" inputmode="decimal" autocomplete="off"></label>
+  <div class="two"><label>მრიცხველი<input id="meter" inputmode="decimal"></label><label>ლუქის ნომერი<input id="seal" inputmode="numeric"></label></div>
+  <label>მიმღები (არასავალდებულო)<input id="who"></label>
+  <label>მრიცხველის ფოტო<input type="file" id="photo" accept="image/*" capture="environment"></label>
+  <div id="warns" class="warn" hidden></div>
+  <label id="reasonL" hidden>მიზეზი (სავალდებულო)<input id="reason"></label>
+  <button class="go" id="save">შენახვა</button>
+ </section>
+ <section id="p-in" class="card" hidden>
+  <h2>საწვავის მიღება ავზში</h2>
+  <label>მიღების დრო (საათი:წუთი)<input type="time" id="time2"></label>
+  <label>ლიტრი<input id="dl" inputmode="decimal"></label><label>საიდან<input id="src"></label>
+  <button class="go" id="saveIn">მიღების შენახვა</button>
+ </section>
+ <section id="p-day" class="card" hidden><h2 id="daytitle">დღის ჩანაწერები</h2><div id="summary"></div><div id="log"></div></section>
+</div>
+</main>
+<script src="config.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
