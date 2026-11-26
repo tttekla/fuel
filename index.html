@@ -22,7 +22,13 @@ button,input,select{font:inherit;color:var(--fg);border:1px solid var(--line);bo
 input,select{width:100%}button{cursor:pointer;font-weight:600}button:disabled{opacity:.5}
 nav button[aria-selected=true]{background:var(--fg);color:var(--bg)}
 .go{background:var(--acc);color:var(--on);border-color:var(--acc);padding:15px;font-weight:800}
-label{display:grid;gap:4px;font-size:13px;color:var(--mut)}#liters,#dl{font-size:30px;font-weight:800}
+label{display:grid;gap:4px;font-size:13px;color:var(--mut)}#liters,#dl,.big{font-size:30px;font-weight:800}
+#cnav button{padding:11px 2px;font-size:14px}
+.cam{position:relative;border:2px dashed var(--acc);border-radius:10px;padding:16px;text-align:center;cursor:pointer;color:var(--fg);font-size:16px;font-weight:700;justify-items:center}.cam input{position:absolute;opacity:0;width:1px;height:1px;padding:0}.cam img{max-height:180px;max-width:100%;border-radius:8px}.cam:focus-within{outline:3px solid var(--fg)}
+.wide{overflow-x:auto}table{border-collapse:collapse;width:100%;font-size:13px;font-variant-numeric:tabular-nums}th,td{border-bottom:1px solid var(--line);padding:7px 4px;text-align:left;vertical-align:top}th{color:var(--mut);font-weight:600}.n{text-align:right;white-space:nowrap}tr.void{opacity:.5;text-decoration:line-through}td button{padding:4px 8px;font-size:12px}
+#whoami{min-width:0;overflow-wrap:anywhere}
+label.check{display:flex;gap:8px;align-items:center;color:var(--fg)}label.check input{width:22px;height:22px}
+.line{border:2px solid var(--acc);border-radius:8px;padding:10px;display:grid;gap:8px;min-width:0}.chosen{background:var(--fg);color:var(--bg)}
 .two{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px}
 .list{max-height:260px;overflow:auto;display:grid;gap:4px}
 .item{text-align:left;display:grid;font-weight:400}.picked{border:2px solid var(--acc)}
@@ -47,7 +53,10 @@ details summary{cursor:pointer;font-weight:600}details>div{display:grid;gap:8px;
  <div class="row"><strong id="whoami"></strong><button id="leave">გასვლა</button></div>
  <div id="sync" class="warn" role="status"></div><button id="send">ახლავე გაგზავნა / განახლება</button>
  <div id="errors" class="stack"></div>
+ <nav id="areas"></nav>
+ <div id="tank" class="stack">
  <label id="truckL">დიზელმზიდი<select id="truck"></select></label>
+ <label id="personL">დღეს მძღოლი (სახელი და გვარი)<input id="person" list="people" maxlength="60" autocomplete="off" placeholder="ჩაწერეთ თქვენი სახელი"></label><datalist id="people"></datalist>
  <label>დღე<input type="date" id="date"></label>
  <div class="bal"><small id="baltitle">ნაშთი ავზში</small><b id="end"></b><small id="parts"></small></div>
  <nav id="nav"></nav>
@@ -61,7 +70,7 @@ details summary{cursor:pointer;font-weight:600}details>div{display:grid;gap:8px;
   <label>ლიტრი<input id="liters" inputmode="decimal" autocomplete="off"></label>
   <div class="two"><label>მრიცხველი<input id="meter" inputmode="decimal"></label><label>ლუქის ნომერი<input id="seal" inputmode="numeric"></label></div>
   <label>მიმღები (არასავალდებულო)<input id="who"></label>
-  <label>მრიცხველის ფოტო<input type="file" id="photo" accept="image/*" capture="environment"></label>
+  <label class="cam"><span data-text="მრიცხველის გადაღება">მრიცხველის გადაღება</span><img alt="" hidden><input type="file" id="photo" accept="image/*" capture="environment"></label>
   <div id="warns" class="warn" hidden></div>
   <label id="reasonL" hidden>მიზეზი (სავალდებულო)<input id="reason"></label>
   <button class="go" id="save">შენახვა</button>
@@ -69,13 +78,72 @@ details summary{cursor:pointer;font-weight:600}details>div{display:grid;gap:8px;
  <section id="p-in" class="card" hidden>
   <h2>საწვავის მიღება ავზში</h2>
   <label>მიღების დრო (საათი:წუთი)<input type="time" id="time2"></label>
-  <label>ლიტრი<input id="dl" inputmode="decimal"></label><label>საიდან<input id="src"></label>
+  <label>ლიტრი<input id="dl" inputmode="decimal"></label><label>საიდან ივსება<select id="src"></select></label>
   <button class="go" id="saveIn">მიღების შენახვა</button>
  </section>
  <section id="p-day" class="card" hidden><h2 id="daytitle">დღის ჩანაწერები</h2><div id="summary"></div><div id="log"></div></section>
+ </div>
+ <div id="cardarea" class="stack" hidden>
+ <nav id="cnav"></nav>
+ <section id="c-fill" class="card" hidden>
+  <div id="cnone" class="warn" hidden>თქვენზე ბარათი ჯერ არ არის მიბმული. მიმართეთ ადმინს.</div>
+  <label id="ccL">ბარათი<select id="cc"></select></label>
+  <div id="clines" class="stack"></div>
+  <button type="button" id="cmore">+ კიდევ ერთი ტექნიკა იმავე ქვითარზე</button>
+  <details id="caddbox"><summary>+ მანქანის ან ტექნიკის დამატება</summary><div>
+   <label>სახელმწიფო ნომერი<input id="cnp" autocomplete="off"></label>
+   <div id="cfound" class="list"></div>
+   <label>მოდელი ან დასახელება<input id="cnm" autocomplete="off"></label>
+   <label class="check"><input type="checkbox" id="cnodo" checked> ოდომეტრი აქვს</label>
+   <button type="button" id="caddcar">დამატება</button></div></details>
+  <label class="cam"><span data-text="ქვითრის გადაღება">ქვითრის გადაღება</span><img alt="" hidden><input type="file" id="cphoto" accept="image/*" capture="environment"></label>
+  <div class="two"><label>დღე<input type="date" id="cdate"></label><label>დრო<input type="time" id="ctime"></label></div>
+  <div id="cwarns" class="warn" hidden></div>
+  <label id="creasonL" hidden>მიზეზი (სავალდებულო)<input id="creason"></label>
+  <div id="csum" class="mut"></div>
+  <button class="go" id="csave">შენახვა</button>
+ </section>
+ <section id="c-mine" class="card" hidden>
+  <label>თვე<input type="month" id="mmonth"></label>
+  <div id="mtotal" class="bal"></div>
+  <div id="mtables" class="stack"></div>
+ </section>
+ <section id="c-report" class="card" hidden>
+  <div class="two"><label>პერიოდი<select id="rmode"><option value="day">ერთი დღე</option><option value="month">მთელი თვე</option></select></label><label>თარიღი<input type="date" id="rdate"></label></div>
+  <div class="two"><label>ობიექტი<select id="rsite"><option value="">ყველა</option><option value="N1">დანართი 1</option><option value="N3">დანართი 3</option><option value="-">მითითების გარეშე</option></select></label><label>საწვავი<select id="rfuel"><option value="">ყველა</option><option>დიზელი</option><option>ბენზინი</option></select></label></div>
+  <label>პიროვნება<select id="rperson"></select></label>
+  <div id="rtotal" class="bal"></div>
+  <div id="rlist"></div>
+ </section>
+ <section id="c-manage" class="card" hidden>
+  <div id="mlist" class="stack"></div>
+  <button id="mnew">+ ახალი ბარათი</button>
+  <div id="medit" class="stack" hidden>
+   <h2>ბარათის რედაქტირება</h2>
+   <label>ბარათის სრული ნომერი<input id="mnum"></label>
+   <label>მფლობელის სახელი<input id="mholder" list="ulist"></label>
+   <label>ასევე შეუძლიათ (სახელები, მძიმით)<input id="mextra"></label>
+   <datalist id="ulist"></datalist>
+   <div id="muser" class="warn" hidden></div>
+   <label class="check"><input type="checkbox" id="mactive"> აქტიური</label>
+   <h2>მიბმული ტექნიკა და ობიექტი</h2>
+   <div id="mcars" class="stack"></div>
+   <label>ტექნიკის დამატება (ძებნა)<input id="mq" placeholder="ნომრის ნაწილი" autocomplete="off"></label>
+   <div id="mfound" class="list"></div>
+   <button class="go" id="msave">ბარათის შენახვა</button><button id="mcancel">დახურვა</button>
+  </div>
+ </section>
+ <section id="c-cars" class="card" hidden>
+  <label>ძებნა<input id="vq" placeholder="ნომრის ან მოდელის ნაწილი" autocomplete="off"></label>
+  <label>ჩვენება<select id="vfilter"><option value="card">ბარათზე მიბმული</option><option value="none">ობიექტის გარეშე</option><option value="">ყველა</option></select></label>
+  <div id="vlist" class="stack"></div>
+  <small>ახალი ტექნიკა ემატება „შევსება“ ჩანართიდან.</small>
+ </section>
+ </div>
 </div>
 </main>
 <script src="config.js"></script>
 <script src="app.js"></script>
+<script src="cards.js"></script>
 </body>
 </html>
